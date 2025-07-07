@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
+from utils import load_prompt
 from pydantic import BaseModel
 from typing import List
 
@@ -20,9 +21,14 @@ frameworks = ["Utilitarianism","Deontology", "Virtue Ethics"]
 def evaluate_dilemma(req: DilemmaRequest):
     results = []
     for framework in frameworks:
+        try:
+            prompt = load_prompt(framework,req.dilemma)
+        except FileNotFoundError as e:
+            raise HTTPException(status_code=500,detail = str(e))
+
         results.append(FrameworkResponse(
             framework=framework,
-            response=f"This is a placeholder response using {framework} for the dilemma: '{req.dilemma}'"
+            response=prompt
         ))
     return DilemmaResult(results=results)
 
